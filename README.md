@@ -15,26 +15,15 @@ Each column of "amazon_items_links.txt" contains the IDs of two items, and indic
 
 
 
-<b>The Reddit dataset</b> is in the Reddit folder. The dictionary is as follows.
+<b>The DBLP dataset</b> is in the dblp/DBLP_2498k folder. The dictionary is as follows.
 
-Community_num = 148873, Keyword_num = 591072, community_keyword_pair_num (dummy_vertex_num) = 1023334
+Each of "dblp_v12_fields.txt" corresponds to a field of study. For example, "28341\<&\>Biological immune system" means that the filed of "Biological immune system" has a field ID of 28341. There are 127726 fields of study in total.
 
-In "Communities.txt", an example line content is "r/phinvest	1000035", 
-which means that the ID of community "r/phinvest" is 1000035.
+Each line of "dblp_v12_authors.txt" corresponds to an author, and contain the following information:"Author_ID\<&\>Author_name\<&\>Fields_of_study_IDs_and_Weights\<&\>Citation_num\<&\>Paper_num". For example, "1514\<&\>Ting Fu Lin\<&\>\<2765,0.4513\>;\<412,0.4679\>;\<4370,0.5216\>;\<77,0.4012\>\<&\>6\<&\>1" means that Author 1514 has the name of Ting Fu Lin, and are in the fields of 2765, 412, 4370, 77. This author is associated with the weights of 0.4513, 0.4679, 0.5216, 0.4012 for the above fields (large weights indicate high probabilities). This author has a total citation of 6, and has 1 paper in total. There are 2497782 authors in total.
 
-In "Keywords.txt", an example line content is "personal space	2", 
-which means that the ID of keyword "personal space" is 2.
+Each line of "dblp_v12_linkes.txt" contains the IDs of two authors, and shows that these two authors have co-authored papers.
 
-In "dummy_vertex_IDs.txt", an example line content is "1008668+287955	2247821", 
-which means that the pair of community 1008668 and keyword 287955 has an ID of 2247821.
-
-
-Each comment file, e.g., "Comments_2019_9_1.txt",  records the comment data for a day.
-An example line content in a comment file is "2604152	6_2,7_5", 
-which means that the details of comments corresponding to dummy vertex 2604152 (suppose that 2604152 corresponds to 
-the pair of community X and keyword Y; then these comments are in community X and contain keyword Y) is 6_2,7_5,
-i.e., there are 2 comments in hour 6 and 5 comments in hour 7 (the hour ID is from 0 to 23).
-
+As discussed in the supplement, due to the inefficiency of hub labeling, we use a half of DBLP dataset for the additional experiments in the supplement. The half of DBLP dataset is in the dblp/DBLP_1248k folder.
 
 
 

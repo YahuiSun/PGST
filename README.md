@@ -38,21 +38,12 @@ i.e., there are 2 comments in hour 6 and 5 comments in hour 7 (the hour ID is fr
 
 
 
-<b>The Wikipedia dataset</b> is in the Wiki_1M folder. The dictionary is as follows.
+<b>The Movie dataset</b> is in the movie folder. The dictionary is as follows.
 
-page_num = 1176192 page_connection_num = 11124449
+Each line of "MovieLens_25M_movie_info.txt" corresponds to the information of a movie: Movie_ID(start from 0):::Movie_name:::Average_star:::genres. For example, "5:::Homage (1995):::2.536:::6_Drama", which means that Movie 5 has a name of Homage (1995), and has an average rating star of 2.536, and the genre of this movie is Drama (the genre ID of Drama is 6). There are 62423 movies in total.
 
-In "Wiki_pages_1176k_undirected.txt", an example line content is "0 Lily_Laita", 
-which means that the name of page 0 is Lily_Laita.
+Each line of "MovieLens_25M_movie_links.txt" contains a pair of movies such that there are users who rate both these two movies five stars. The content in each line is "Movie_ID1(start from 0):::Movie_ID2(start from 0):::Number_of_common_5_star_raters". For example, "1252:::1395:::79" means that there are users who rate five stars to both Movies 1252 and 1395, and the number of such persons is 79. There are 35323774 pairs of movie in total.
 
-In "Wiki_pagerelationships_1176k_undirected.txt", an example line content is "422690 1158259", 
-which means that page 422690 is linked to page 1158259.
-
-Each pageview file, e.g., "pageviews_1176k_2020_1_1.txt",  records the pageview data for a day.
-An example line content in a page view file is "607329 2 F1W1", 
-which means that the total pageview of page 607329 in this day is 2, and the detail of this pageview is F1W1, and 
-<Hour: from 0 to 23, written as 0 = A, 1 = B ... 22 = W, 23 = X>, i.e., F1W1 means that there is 1 pageview in hour F
-and 1 pageview in hour W
 
 
 

@@ -7,7 +7,7 @@ The introduction of these files are as follows.
 
 <b>The Amazon dataset</b> is in the amazon folder. The dictionary is as follows.
 
-Each column of "amazon_items.txt" contains the information of an item: "Item_ID, Average_rating_of_this_item, Keywords_of_this_item". For example, "<itemid>3<itemid/><avg_rating>5<avg_rating/><keywords>100000009,100000010<keywords/>" means that Item 3 has an average rating of 5, and the keywords associated with Item 3 are 100000009 and 100000010. There are 548552 items in total.
+Each column of "amazon_items.txt" contains the information of an item: "Item_ID, Average_rating_of_this_item, Keywords_of_this_item". For example, "<itemid>3<itemid/><avg_rating>5<avg_rating/>/<keywords/>100000009,100000010/<keywords//>" means that Item 3 has an average rating of 5, and the keywords associated with Item 3 are 100000009 and 100000010. There are 548552 items in total.
 
 Each column of "amazon_keywords.txt" corresponds to a keyword, and contain the ID of a keyword and the name of this keyword. For example, "100000417	Sheldon, Jack" means that the keyword of "Sheldon, Jack" has an ID of 100000417. There are 25958 keywords in total.
 

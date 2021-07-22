@@ -301,44 +301,57 @@ graph_hash_of_mixed_weighted make_solutree_feasible(graph_v_of_v_idealID& input_
 #pragma region
 bool this_is_an_essential_cover_of_g(graph_v_of_v_idealID& group_graph, vector<int>& vertex_set, int g, double b) {
 
-	/*O(|vertex_set|^2)*/
+	/*O(|vertex_set|) */
 
 	/*check whether vertex_set covers g; O(|vertex_set|)*/
 	double set_size = vertex_set.size();
+	if (set_size == 0) {
+		return false;
+	}
 	vector<double> vertex_probability(set_size, 0);
+	queue<int> one_in_vertex_probability;
 	double p_g_not_coverred = 1;
 	for (int j = 0; j < set_size; j++) {
 		if (graph_v_of_v_idealID_contain_edge(group_graph, vertex_set[j], g)) {
 			vertex_probability[j] = graph_v_of_v_idealID_edge_weight(group_graph, vertex_set[j], g);
+			if (vertex_probability[j] == 1) {
+				one_in_vertex_probability.push(j);
+			}
 		}
 		else {
-			return false; // the jth vertex is redundent for covering g
-			vertex_probability[j] = 0;
+			return false; // vertex_probability[j] = 0; the jth vertex is redundent for covering g
 		}
 		p_g_not_coverred = p_g_not_coverred * (1 - vertex_probability[j]);
 	}
+	/*every vertex_probability is positive below*/
 	if (1 - p_g_not_coverred < b) {
 		return false;
 	}
-
-
-	/*check whether vertex_set is essential; O(|vertex_set|^2)*/
-	for (int i = 0; i < set_size; i++) {
-		p_g_not_coverred = 1;
-		for (int j = 0; j < set_size; j++) {
-			if (i != j) {
-				p_g_not_coverred = p_g_not_coverred * (1 - vertex_probability[j]);
-			}
+	if (one_in_vertex_probability.size() > 1) {
+		return false;
+	}
+	else if (one_in_vertex_probability.size() == 1) {
+		if (set_size > 1) {
+			return false;
 		}
-		if (1 - p_g_not_coverred >= b) { // the ith vertex is redundent for covering g
+		else {
+			return true;
+		}
+	}
+	/*every vertex_probability is in (0,1) below*/
+
+	/*check whether vertex_set is essential; O(|vertex_set|)*/
+	for (int j = 0; j < set_size; j++) {
+		double p_g_not_coverred_without_j = p_g_not_coverred / (1 - vertex_probability[j]);
+		if (1 - p_g_not_coverred_without_j >= b) { // the ith vertex is redundent for covering g
 			return false;
 		}
 	}
-
 	return true;
 
 }
 #pragma endregion this_is_an_essential_cover_of_g
+
 
 
 
@@ -2808,6 +2821,174 @@ int experiment_element(string data_name, string save_name, int V, int T, double 
 #pragma endregion experiment_element
 
 #pragma region
+void V1_experiments() {
+
+	/* only DUAL and GRETREE do not need PLL indexes */
+
+	int pool_size = 40; // 20 is too many for full dblp 1ec£¬ while 15 uses 350GB RAM at most
+	ThreadPool pool(pool_size); // use pool_size threads
+	std::vector< std::future<int> > results;
+
+	/*Jacard*/
+	if (0) {
+		bool one_edge_weight = false;
+
+		/*amazon*/
+		if (0) {
+
+			string data_name = "amazon";
+			int iteration_times = 100;
+			int V = 548552, T = 5;
+			double b = 0.9, tau = 1, P_min = 0.5, P_max = 0.9;
+
+			int split_num = 10;
+			for (int ii = 1; ii <= split_num; ii++) {
+
+				/*vary V*/
+				if (1) {
+					results.emplace_back(pool.enqueue([data_name, V, T, b, tau, P_min, P_max, iteration_times, ii, split_num, one_edge_weight] {
+						experiment_element(data_name, "Exp_" + data_name + "_vary_V_1_" + to_string(ii) + ".csv", 45, T, b, tau, P_min, P_max, iteration_times / split_num,
+							true, true, true, true, true, true, true, one_edge_weight);
+						return 1; })); // DUAL is sometimes very slow when V=70
+				}
+			}
+		}
+
+		/*movie 22 threads; 150 GB RAM*/
+		if (0) {
+
+			string data_name = "movie";
+			int iteration_times = 100;
+			int V = 62423, T = 5;
+			double b = 0.9, tau = 1, P_min = 0.5, P_max = 0.9;
+
+
+			int split_num = 10;
+			for (int ii = 1; ii <= split_num; ii++) {
+
+				/*vary V*/
+				if (1) {
+					results.emplace_back(pool.enqueue([data_name, V, T, b, tau, P_min, P_max, iteration_times, ii, split_num, one_edge_weight] {
+						experiment_element(data_name, "Exp_" + data_name + "_vary_V_1_" + to_string(ii) + ".csv", 70, T, b, tau, P_min, P_max, iteration_times / split_num,
+							true, true, true, true, true, true, true, one_edge_weight);
+						return 1; }));
+				}
+			}
+
+
+		}
+
+		/*dblp*/
+		if (0) {
+
+			string data_name = "dblp";
+
+			int iteration_times = 100;
+
+			int V = 1248891, T = 5;
+			double b = 0.9, tau = 1, P_min = 0.5, P_max = 0.9;
+
+			/*others*/
+			if (1) {
+				int split_num = 10;
+				for (int ii = 1; ii <= split_num; ii++) {
+
+					/*vary V; 200 GB*/
+					if (1) {
+						results.emplace_back(pool.enqueue([data_name, V, T, b, tau, P_min, P_max, iteration_times, ii, split_num, one_edge_weight] {
+							return experiment_element(data_name, "Exp_" + data_name + "_vary_V_1_" + to_string(ii) + ".csv", 90, T, b, tau, P_min, P_max, iteration_times / split_num,
+								true, true, true, true, true, true, true, one_edge_weight);
+						}));
+					}
+
+				}
+			}
+
+		}
+
+	}
+
+
+	/*one_edge_weight*/
+	if (1) {
+		bool one_edge_weight = true;
+
+		/*amazon*/
+		if (0) {
+
+			string data_name = "amazon";
+			int iteration_times = 100;
+			int V = 548552, T = 5;
+			double b = 0.9, tau = 1, P_min = 0.5, P_max = 0.9;
+
+			int split_num = 10;
+			for (int ii = 1; ii <= split_num; ii++) {
+
+				/*vary V*/
+				if (1) {
+					results.emplace_back(pool.enqueue([data_name, V, T, b, tau, P_min, P_max, iteration_times, ii, split_num, one_edge_weight] {
+						experiment_element(data_name, "Exp_" + data_name + "_one_edge_weight_vary_V_1_" + to_string(ii) + ".csv", 45, T, b, tau, P_min, P_max, iteration_times / split_num,
+							true, true, true, true, true, true, true, one_edge_weight); // 50 is sometimes too slow
+						return 1; }));
+				}
+			}
+
+		}
+
+		/*movie*/
+		if (0) {
+
+			string data_name = "movie";
+			int iteration_times = 100;
+			int V = 62423, T = 5;
+			double b = 0.9, tau = 1, P_min = 0.5, P_max = 0.9;
+
+			int split_num = 10;
+			for (int ii = 1; ii <= split_num; ii++) {
+
+				/*vary V*/
+				if (1) {
+					results.emplace_back(pool.enqueue([data_name, V, T, b, tau, P_min, P_max, iteration_times, ii, split_num, one_edge_weight] {
+						experiment_element(data_name, "Exp_" + data_name + "_one_edge_weight_vary_V_1_" + to_string(ii) + ".csv", 70, T, b, tau, P_min, P_max, iteration_times / split_num,
+							true, true, true, true, true, true, true, one_edge_weight);
+						return 1; }));
+				}
+
+			}
+
+		}
+
+		/*dblp 27 threads*/
+		if (1) {
+
+			string data_name = "dblp";
+			int iteration_times = 100;
+			int V = 2497782, T = 5;
+			double b = 0.9, tau = 1, P_min = 0.5, P_max = 0.9;
+
+			/*others*/
+			if (1) {
+				int split_num = 10;
+				for (int ii = 1; ii <= split_num; ii++) {
+
+					/*vary V*/
+					if (1) {
+						results.emplace_back(pool.enqueue([data_name, V, T, b, tau, P_min, P_max, iteration_times, ii, split_num, one_edge_weight] {
+							experiment_element(data_name, "Exp_" + data_name + "_one_edge_weight_vary_V_1_" + to_string(ii) + ".csv", 90, T, b, tau, P_min, P_max, iteration_times / split_num,
+								true, true, true, true, true, true, true, one_edge_weight);
+							return 1; }));
+					}
+
+				}
+			}
+
+		}
+	}
+
+}
+#pragma endregion V1_experiments
+
+#pragma region
 void experiments() {
 
 	/* only DUAL and GRETREE do not need PLL indexes */
@@ -2834,10 +3015,10 @@ void experiments() {
 
 				/*vary V*/
 				if (1) {
-					results.emplace_back(pool.enqueue([data_name, V, T, b, tau, P_min, P_max, iteration_times, ii, split_num, one_edge_weight] {
-						experiment_element(data_name, "Exp_" + data_name + "_vary_V_1_" + to_string(ii) + ".csv", 50, T, b, tau, P_min, P_max, iteration_times / split_num,
-							true, true, true, true, true, true, true, one_edge_weight);
-						return 1; })); // DUAL is sometimes very slow when V=70
+					//results.emplace_back(pool.enqueue([data_name, V, T, b, tau, P_min, P_max, iteration_times, ii, split_num, one_edge_weight] {
+					//	experiment_element(data_name, "Exp_" + data_name + "_vary_V_1_" + to_string(ii) + ".csv", 45, T, b, tau, P_min, P_max, iteration_times / split_num,
+					//		true, true, true, true, true, true, true, one_edge_weight);
+					//	return 1; })); // DUAL is often very slow when V=70, sometimes even when V=50
 					results.emplace_back(pool.enqueue([data_name, V, T, b, tau, P_min, P_max, iteration_times, ii, split_num, one_edge_weight] {
 						experiment_element(data_name, "Exp_" + data_name + "_vary_V_2_" + to_string(ii) + ".csv", 188552, T, b, tau, P_min, P_max, iteration_times / split_num,
 							true, true, true, 0, true, true, true, one_edge_weight);
@@ -2954,10 +3135,10 @@ void experiments() {
 				
 				/*vary V*/
 				if (1) {
-					results.emplace_back(pool.enqueue([data_name, V, T, b, tau, P_min, P_max, iteration_times, ii, split_num, one_edge_weight] {
-						experiment_element(data_name, "Exp_" + data_name + "_vary_V_1_" + to_string(ii) + ".csv", 60, T, b, tau, P_min, P_max, iteration_times / split_num, 
-							true, true, true, true, true, true, true, one_edge_weight);
-						return 1; }));
+					//results.emplace_back(pool.enqueue([data_name, V, T, b, tau, P_min, P_max, iteration_times, ii, split_num, one_edge_weight] {
+					//	experiment_element(data_name, "Exp_" + data_name + "_vary_V_1_" + to_string(ii) + ".csv", 70, T, b, tau, P_min, P_max, iteration_times / split_num, 
+					//		true, true, true, true, true, true, true, one_edge_weight);
+					//	return 1; }));
 					results.emplace_back(pool.enqueue([data_name, V, T, b, tau, P_min, P_max, iteration_times, ii, split_num, one_edge_weight] {
 						experiment_element(data_name, "Exp_" + data_name + "_vary_V_special_" + to_string(ii) + ".csv", 2423, T, b, tau, P_min, P_max, iteration_times / split_num / 2,
 							true, true, true, 0, true, true, true, one_edge_weight);
@@ -3122,10 +3303,10 @@ void experiments() {
 
 					/*vary V; 200 GB*/
 					if (1) {
-						results.emplace_back(pool.enqueue([data_name, V, T, b, tau, P_min, P_max, iteration_times, ii, split_num, one_edge_weight] {
-							return experiment_element(data_name, "Exp_" + data_name + "_vary_V_1_" + to_string(ii) + ".csv", 60, T, b, tau, P_min, P_max, iteration_times / split_num,
-								true, true, true, true, true, true, true, one_edge_weight);
-						}));
+						//results.emplace_back(pool.enqueue([data_name, V, T, b, tau, P_min, P_max, iteration_times, ii, split_num, one_edge_weight] {
+						//	return experiment_element(data_name, "Exp_" + data_name + "_vary_V_1_" + to_string(ii) + ".csv", 90, T, b, tau, P_min, P_max, iteration_times / split_num,
+						//		true, true, true, true, true, true, true, one_edge_weight);
+						//}));
 						results.emplace_back(pool.enqueue([data_name, V, T, b, tau, P_min, P_max, iteration_times, ii, split_num, one_edge_weight] {
 							return experiment_element(data_name, "Exp_" + data_name + "_vary_base_" + to_string(ii) + ".csv", V, T, b, tau, P_min, P_max, iteration_times / split_num,
 								true, true, true, 0, 0, true, true, one_edge_weight);
@@ -3243,10 +3424,10 @@ void experiments() {
 
 				/*vary V*/
 				if (1) {
-					results.emplace_back(pool.enqueue([data_name, V, T, b, tau, P_min, P_max, iteration_times, ii, split_num, one_edge_weight] {
-						experiment_element(data_name, "Exp_" + data_name + "_one_edge_weight_vary_V_1_" + to_string(ii) + ".csv", 30, T, b, tau, P_min, P_max, iteration_times / split_num, 
-							true, true, true, true, true, true, true, one_edge_weight); // 50 is sometimes too slow
-						return 1; }));
+					//results.emplace_back(pool.enqueue([data_name, V, T, b, tau, P_min, P_max, iteration_times, ii, split_num, one_edge_weight] {
+					//	experiment_element(data_name, "Exp_" + data_name + "_one_edge_weight_vary_V_1_" + to_string(ii) + ".csv", 45, T, b, tau, P_min, P_max, iteration_times / split_num, 
+					//		true, true, true, true, true, true, true, one_edge_weight); // 50 is sometimes too slow
+					//	return 1; }));
 					results.emplace_back(pool.enqueue([data_name, V, T, b, tau, P_min, P_max, iteration_times, ii, split_num, one_edge_weight] {
 						experiment_element(data_name, "Exp_" + data_name + "_one_edge_weight_vary_V_2_" + to_string(ii) + ".csv", 188552, T, b, tau, P_min, P_max, iteration_times / split_num,
 							true, true, true, 0, true, true, true, one_edge_weight);
@@ -3361,10 +3542,10 @@ void experiments() {
 
 				/*vary V*/
 				if (1) {
-					results.emplace_back(pool.enqueue([data_name, V, T, b, tau, P_min, P_max, iteration_times, ii, split_num, one_edge_weight] {
-						experiment_element(data_name, "Exp_" + data_name + "_one_edge_weight_vary_V_1_" + to_string(ii) + ".csv", 60, T, b, tau, P_min, P_max, iteration_times / split_num,
-							true, true, true, true, true, true, true, one_edge_weight);
-						return 1; }));
+					//results.emplace_back(pool.enqueue([data_name, V, T, b, tau, P_min, P_max, iteration_times, ii, split_num, one_edge_weight] {
+					//	experiment_element(data_name, "Exp_" + data_name + "_one_edge_weight_vary_V_1_" + to_string(ii) + ".csv", 70, T, b, tau, P_min, P_max, iteration_times / split_num,
+					//		true, true, true, true, true, true, true, one_edge_weight);
+					//	return 1; }));
 					results.emplace_back(pool.enqueue([data_name, V, T, b, tau, P_min, P_max, iteration_times, ii, split_num, one_edge_weight] {
 						experiment_element(data_name, "Exp_" + data_name + "_one_edge_weight_vary_V_special_" + to_string(ii) + ".csv", 2423, T, b, tau, P_min, P_max, iteration_times / split_num / 2,
 							true, true, true, 0, true, true, true, one_edge_weight);
@@ -3530,10 +3711,10 @@ void experiments() {
 
 					/*vary V*/
 					if (1) {
-						results.emplace_back(pool.enqueue([data_name, V, T, b, tau, P_min, P_max, iteration_times, ii, split_num, one_edge_weight] {
-							experiment_element(data_name, "Exp_" + data_name + "_one_edge_weight_vary_V_1_" + to_string(ii) + ".csv", 60, T, b, tau, P_min, P_max, iteration_times / split_num,
-								true, true, true, true, true, true, true, one_edge_weight);
-							return 1; }));
+						//results.emplace_back(pool.enqueue([data_name, V, T, b, tau, P_min, P_max, iteration_times, ii, split_num, one_edge_weight] {
+						//	experiment_element(data_name, "Exp_" + data_name + "_one_edge_weight_vary_V_1_" + to_string(ii) + ".csv", 80, T, b, tau, P_min, P_max, iteration_times / split_num,
+						//		true, true, true, true, true, true, true, one_edge_weight);
+						//	return 1; }));
 						results.emplace_back(pool.enqueue([data_name, V, T, b, tau, P_min, P_max, iteration_times, ii, split_num, one_edge_weight] {
 							experiment_element(data_name, "Exp_" + data_name + "_one_edge_weight_vary_base_" + to_string(ii) + ".csv", V, T, b, tau, P_min, P_max, iteration_times / split_num,
 								true, true, true, 0, 0, true, true, one_edge_weight);
@@ -3690,7 +3871,6 @@ void example_experiments() {
 #pragma endregion example_experiments
 
 
-
 int main()
 {
 	auto begin = std::chrono::high_resolution_clock::now();
@@ -3698,7 +3878,6 @@ int main()
 	/*the two values below are for #include <graph_hash_of_mixed_weighted.h>*/
 	graph_hash_of_mixed_weighted_turn_on_value = 1e3;
 	graph_hash_of_mixed_weighted_turn_off_value = 1e1;
-
 
 	example_experiments();
 
